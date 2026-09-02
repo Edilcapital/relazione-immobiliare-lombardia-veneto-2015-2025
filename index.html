@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relazione Immobiliare Lombardia e Veneto 2015-2025</title>
+<style>body{font-family:system-ui,sans-serif;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}#s{font-size:14px;color:#64748b}</style>
+</head>
+<body>
+<p id="s">Caricamento report…</p>
+<script>
+(async () => {
+  try {
+    const names = Array.from({length: 14}, (_, i) => 'parts/p' + String(i).padStart(2,'0') + '.txt');
+    const texts = await Promise.all(names.map(async (n) => {
+      const res = await fetch(n);
+      if (!res.ok) throw new Error(n + ' ' + res.status);
+      return (await res.text()).trim();
+    }));
+    const b64 = texts.join('');
+    const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const stream = new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const html = await new Response(stream).text();
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (e) {
+    document.getElementById('s').textContent = 'Errore di caricamento: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
